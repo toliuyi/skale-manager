@@ -28,6 +28,11 @@ import "../SkaleToken.sol";
 import "./TokenState.sol";
 
 
+/**
+    @notice Handles Delegation Requests <br>
+            Requests are created/canceled by the delegator <br>
+            Requests are accepted by the validator
+*/
 contract DelegationRequestManager is Permissions {
 
     struct DelegationRequest {
@@ -43,11 +48,23 @@ contract DelegationRequestManager is Permissions {
     mapping (address => uint[]) public delegationRequestsByTokenAddress;
     // mapping (address => bool) public delegated;
 
-
+    /**
+        @notice Delegation request manager constructor
+        @param newContractsAddress to register for Permissions
+    */
     constructor(address newContractsAddress) Permissions(newContractsAddress) public {
 
     }
 
+    /**
+        @notice checks if validator has access to change the status of a request
+        @param requestId Id of the delegation request
+
+        Requirements
+        -
+        Delegation request should exist
+        Transaction sender should have permissions to change status of request
+    */
     modifier checkValidatorAccess(uint requestId) {
         ValidatorService validatorService = ValidatorService(
             contractManager.getContract("ValidatorService")
@@ -59,6 +76,15 @@ contract DelegationRequestManager is Permissions {
         );
         _;
     }
+
+    /**
+        @notice get a specific Delegation Request
+        @param requestId Id of the Delegation Request
+        @return tokenAddress : token address of the delegator <br>
+                validatorId : Id of the validator<br>
+                amount : amount of tokens to be used for delegation<br>
+                delegationPeriod : preferred delegation period
+    */
     function getDelegationRequest(uint requestId) external view returns (address, uint, uint, uint) {
         DelegationRequest memory delegationRequest = delegationRequests[requestId];
         return (
@@ -69,6 +95,22 @@ contract DelegationRequestManager is Permissions {
         );
     }
 
+    /**
+        @notice creates a Delegation Request
+        @dev Changes TokenState to PROPOSED!
+        @param tokenAddress token address of the delegator
+        @param validatorId Id of the validator
+        @param amount amount of tokens to be used for delegation
+        @param delegationPeriod delegation period (3,6,12)
+        @param info information about the delegation request
+        @return requestId: Id of the delegation request
+
+        Requirement
+        -
+        Delegation period should be allowed
+        Validator should be registered
+        Delegator should have enough tokens to delegate, checks the account holder balance through SKALEToken contract
+    */
     function createRequest(
         address tokenAddress,
         uint validatorId,
@@ -107,6 +149,15 @@ contract DelegationRequestManager is Permissions {
         require(holderBalance - lockedTokens >= amount, "Delegator hasn't enough tokens to delegate");
     }
 
+    /**
+        @notice cancels a Delegation Request
+        @param requestId Id of the delegation Request
+
+        Requirement
+        -
+        Delegation request should exist
+        Only token holder can cancel request
+    */
     function cancelRequest(uint requestId) external {
         require(requestId < delegationRequests.length, "Delegation request doesn't exist");
         require(
@@ -122,6 +173,14 @@ contract DelegationRequestManager is Permissions {
         }
     }
 
+    /**
+        @notice validator calls this function to accept a Delegation Request
+        @param requestId Id of the delegation Request
+
+        Requirement
+        -
+        Only token holder can cancel request
+    */
     function acceptRequest(uint requestId) external checkValidatorAccess(requestId) {
         DelegationController delegationController = DelegationController(
             contractManager.getContract("DelegationController")
@@ -138,6 +197,15 @@ contract DelegationRequestManager is Permissions {
         delegationController.delegate(requestId);
     }
 
+    /**
+        @notice checks if a request is still valid or expired
+        @param requestId Id of the delegation Request
+        @return true if request Id is still valid
+
+        Requirement
+        -
+        Token Address should exist
+    */
     function checkValidityRequest(uint requestId) public view returns (bool) {
         require(delegationRequests[requestId].tokenAddress != address(0), "Token address doesn't exist");
         return delegationRequests[requestId].unlockedUntill > now ? true : false;
@@ -151,6 +219,12 @@ contract DelegationRequestManager is Permissions {
 
     // }
 
+    /**
+        @notice Calculates the expiration date of a request.
+        @dev first calendar date of the following month <br>
+             This will be assigned to struct attribute value of DelegationRequest.unlockedUntil
+        @return timestamp value of the 1st date of the following month
+    */
     function calculateExpirationRequest() private view returns (uint timestamp) {
         uint year;
         uint month;

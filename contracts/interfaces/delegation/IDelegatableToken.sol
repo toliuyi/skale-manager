@@ -18,10 +18,22 @@
 */
 
 pragma solidity ^0.5.3;
-
+/**
+    @notice Token that can be used for delegation, unlocked
+*/
 interface IDelegatableToken {
 
+    /**
+        @notice returns if the token is locked
+        @param wallet of the wallet
+        @return true if token is locked
+    */
     function getLockedOf(address wallet) external returns (bool);
 
+    /**
+            @notice returns if the token is delegated
+            @param wallet address of the wallet
+            @return true if the token is delegated
+    */
     function getDelegatedOf(address wallet) external returns (bool);
 }
