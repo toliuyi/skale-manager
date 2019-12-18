@@ -20,7 +20,6 @@ pragma experimental ABIEncoderV2;
 import "../Permissions.sol";
 import "./DelegationRequestManager.sol";
 import "./DelegationPeriodManager.sol";
-import "../thirdparty/BokkyPooBahsDateTimeLibrary.sol";
 
 
 /**
@@ -29,23 +28,33 @@ import "../thirdparty/BokkyPooBahsDateTimeLibrary.sol";
 contract DelegationController is Permissions {
 
     struct Delegation {
-        uint validatorId;
         address holder; // address of tokens owner
+        uint validatorId;
         uint amount;
-        uint stakeEffectiveness;
-        uint created; // time of creation
         uint delegationPeriod;
+        uint created; // time of creation
+        string info;
     }
 
     /// @notice delegations will never be deleted to index in this array may be used like delegation id
     Delegation[] public delegations;
 
+    //       holder  => locked amount
+    mapping (address => uint) private _locks;
+
     ///       holder => delegationId
     mapping (address => uint[]) private _delegationsByHolder;
 
-    // mapping (address => uint) public effectiveDelegationsTotal;
-    // mapping (uint => uint) public delegationsTotal;
-    // mapping (address => uint) public delegated;
+
+    //validatorId => sum of tokens multiplied by stake multiplier each holder
+    mapping (uint => uint) public effectiveDelegationsTotal;
+    //validatorId => sum of tokens each holder
+    mapping (uint => uint) public delegationsTotal;
+
+    modifier checkDelegationExists(uint delegationId) {
+        require(delegationId < delegations.length, "Delegation does not exist");
+        _;
+    }
 
     /**
         @notice DelegationController constructor
@@ -55,43 +64,76 @@ contract DelegationController is Permissions {
 
     }
 
+    function lock(address holder, uint amount) external allow("SkaleToken") {
+        _locks[holder] += amount;
+    }
+
+    function unlock(address holder, uint amount) external allow("SkaleToken") {
+        _locks[holder] -= amount;
+    }
+
+    function getLocked(address holder) external returns (uint) {
+        return _locks[holder];
+    }
+
     /**
-        @notice with this function validator finalizes the approval of a delegation request
-        @dev gets delegation request info from delegationRequestManager with requestId <br>
-        if stake is effective then continues delegation process and transfers the token to delegated token address
-        @param requestId Id of the delegation requests
+           @notice with this function validator finalizes the approval of a delegation request
+           @dev gets delegation request info from delegationRequestManager with requestId <br>
+           if stake is effective then continues delegation process and transfers the token to delegated token address
+           @param delegationId Id of the delegation requests
     */
-    function delegate(uint requestId) external {
-        DelegationRequestManager delegationRequestManager = DelegationRequestManager(
-            contractManager.getContract("DelegationRequestManager")
-        );
-        // check that request with such id exists
-        // limit acces to call method delegate only for DelegationRequestManager
-        address tokenAddress;
+    function delegate(uint delegationId) external allow("DelegationRequestManager") {
+        address holder;
         uint validatorId;
         uint amount;
         uint delegationPeriod;
-        (tokenAddress, validatorId, amount, delegationPeriod) = delegationRequestManager.getDelegationRequest(requestId);
-        // uint stakeEffectiveness = DelegationPeriodManager(
-        //     contractManager.getContract("DelegationPeriodManager")
-        // ).getStakeMultiplier(delegationPeriod);
-        uint endTime = calculateEndTime(delegationPeriod);
+        // (holder, validatorId, amount, , delegationPeriod, ,)
+        Delegation memory delegation = getDelegation(delegationId);
+        uint stakeEffectiveness = DelegationPeriodManager(
+            contractManager.getContract("DelegationPeriodManager")
+        ).getStakeMultiplier(delegation.delegationPeriod);
 
-        revert("delegate is not implemented");
+        // revert("delegate is not implemented");
 
-        // addDelegation(Delegation(validatorId, tokenAddress, amount, stakeEffectiveness, true or false?));
+
+        delegationsTotal[delegation.validatorId] += delegation.amount;
+        effectiveDelegationsTotal[delegation.validatorId] += delegation.amount * stakeEffectiveness;
+
 
         // TODO: Lock tokens
-        // delegationsTotal[validatorId] += amount * stakeEffectiveness;
-        // delegated[tokenAddress] += amount;
+    }
+
+    function addDelegation(
+        address holder,
+        uint validatorId,
+        uint amount,
+        uint delegationPeriod,
+        uint created,
+        string calldata info
+    )
+        external
+        allow("DelegationRequestManager")
+        returns (uint delegationId)
+    {
+        delegationId = delegations.length;
+        delegations.push(Delegation(
+            holder,
+            validatorId,
+            amount,
+            delegationPeriod,
+            created,
+            info
+        ));
+        _delegationsByHolder[holder].push(delegationId);
     }
 
     /**
         @notice undelegates a delegation from validator
         @dev Not Implemented!!!
+        @param validatorId Id of the validator
     */
     function unDelegate(uint validatorId) external view {
-        // require(delegations[validatorId].tokenAddress != address(0), "Token with such address wasn't delegated");
+        // require(delegations[validatorId].holder != address(0), "Token with such address wasn't delegated");
         // Call Token.unlock(lockTime)
         // update isDelegated
     }
@@ -100,36 +142,7 @@ contract DelegationController is Permissions {
         return _delegationsByHolder[holder];
     }
 
-    function getDelegation(uint delegationId) external view returns (Delegation memory) {
-        require(delegationId < delegations.length, "Delegation does not exist");
+    function getDelegation(uint delegationId) public view checkDelegationExists(delegationId) returns (Delegation memory) {
         return delegations[delegationId];
-    }
-
-    /**
-        @notice Calculates the expiration date of a delegation
-        @dev First calendar date of the following month
-        @return sendTime expiration date of delegation
-    */
-    function calculateEndTime(uint months) public view returns (uint endTime) {
-        uint year;
-        uint month;
-        uint nextYear;
-        uint nextMonth;
-        (year, month, ) = BokkyPooBahsDateTimeLibrary.timestampToDate(now);
-        if (month != 12) {
-            nextMonth = month + 1;
-            nextYear = year;
-        } else {
-            nextMonth = 1;
-            nextYear = year + 1;
-        }
-        uint timestamp = BokkyPooBahsDateTimeLibrary.timestampFromDate(nextYear, nextMonth, 1);
-        endTime = BokkyPooBahsDateTimeLibrary.addMonths(timestamp, months);
-    }
-
-    function addDelegation(Delegation memory delegation) internal returns (uint delegationId) {
-        delegationId = delegations.length;
-        delegations.push(delegation);
-        _delegationsByHolder[delegation.holder].push(delegationId);
     }
 }

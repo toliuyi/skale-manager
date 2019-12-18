@@ -41,7 +41,7 @@ interface IValidatorDelegation {
        @notice Allows validator to accept tokens delegated at `requestId`
        @param requestId returns request
     */
-    function accept(uint requestId) external;
+    function accept(uint delegationId) external;
 
     /**
         @notice Adds node to SKALE network

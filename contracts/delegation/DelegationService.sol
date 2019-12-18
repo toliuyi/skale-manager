@@ -35,7 +35,7 @@ import "./DelegationController.sol";
 contract DelegationService is Permissions, IHolderDelegation, IValidatorDelegation {
 
     event DelegationRequestIsSent(
-        uint requestId
+        uint delegationId
     );
 
     event ValidatorRegistered(
@@ -55,14 +55,14 @@ contract DelegationService is Permissions, IHolderDelegation, IValidatorDelegati
     }
 
     /**
-        @dev See {IValidatorDelegation.accept}
-        calls DelegationRequestManager.acceptRequest
+       @dev See {IValidatorDelegation.accept}
+       calls DelegationRequestManager.acceptRequest
     */
-    function accept(uint requestId) external {
+    function accept(uint delegationId) external {
         DelegationRequestManager delegationRequestManager = DelegationRequestManager(
             contractManager.getContract("DelegationRequestManager")
         );
-        delegationRequestManager.acceptRequest(requestId);
+        delegationRequestManager.acceptRequest(delegationId);
     }
 
     /**
@@ -147,24 +147,24 @@ contract DelegationService is Permissions, IHolderDelegation, IValidatorDelegati
         DelegationRequestManager delegationRequestManager = DelegationRequestManager(
             contractManager.getContract("DelegationRequestManager")
         );
-        uint requestId = delegationRequestManager.createRequest(
+        uint delegationId = delegationRequestManager.createRequest(
             msg.sender,
             validatorId,
             amount,
             delegationPeriod,
             info
         );
-        emit DelegationRequestIsSent(requestId);
+        emit DelegationRequestIsSent(delegationId);
     }
 
     /**
-        @dev See {IHolderDelegation.cancelPendingDelegation}
+          @dev See {IHolderDelegation.cancelPendingDelegation}
     */
-    function cancelPendingDelegation(uint requestId) external {
+    function cancelPendingDelegation(uint delegationId) external {
         DelegationRequestManager delegationRequestManager = DelegationRequestManager(
             contractManager.getContract("DelegationRequestManager")
         );
-        delegationRequestManager.cancelRequest(requestId);
+        delegationRequestManager.cancelRequest(delegationId);
     }
 
     /**

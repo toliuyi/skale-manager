@@ -35,10 +35,11 @@ contract ValidatorService is Permissions {
         uint registrationTime;
         uint minimumDelegationAmount;
         uint lastBountyCollectionMonth;
+        uint[] nodeIndexes;
     }
 
     Validator[] public validators;
-    mapping (uint => address) public validatorIdtoAddress;
+    mapping (address => uint) public validatorAddressToId;
 
     /**
         @notice Constructor of a validator service registers newContract Address
@@ -64,6 +65,7 @@ contract ValidatorService is Permissions {
     )
         external returns (uint validatorId)
     {
+        uint[] memory epmtyArray = new uint[](0);
         validators.push(Validator(
             name,
             msg.sender,
@@ -71,26 +73,27 @@ contract ValidatorService is Permissions {
             feeRate,
             now,
             minimumDelegationAmount,
-            0
+            0,
+            epmtyArray
         ));
         validatorId = validators.length - 1;
     }
 
     /**
-        @notice sets new address to validator
-        @param validatorId Id of the validator
-        @param newValidatorAddress new address of the the validator
+         @notice sets new address to validator
+         @param validatorId Id of the validator
+         @param newValidatorAddress new address of the the validator
 
-        Requirements
+         Requirements
 
-        -  Sender should have permission to change the address
-    */
-    function setNewValidatorAddress(uint validatorId, address newValidatorAddress) external {
+         -  Sender should have permission to change the address
+     */
+    function setNewValidatorAddress(address newValidatorAddress, uint validatorId) external {
         require(
-            msg.sender == validatorIdtoAddress[validatorId],
+            validatorId == validatorAddressToId[msg.sender],
             "Sender Doesn't have permissions to change address for this validatorId"
         );
-        validatorIdtoAddress[validatorId] = newValidatorAddress;
+        validatorAddressToId[newValidatorAddress] = validatorId;
     }
 
     /*
@@ -103,6 +106,10 @@ contract ValidatorService is Permissions {
         return validatorId < validators.length ? true : false;
     }
 
+    function checkMinimumDelegation(uint validatorId, uint amount) external returns (bool) {
+        return validators[validatorId].minimumDelegationAmount <= amount ? true : false;
+    }
+
     // function setValidatorFeeAddress(uint _validatorId, address _newAddress) public {
     //     require(msg.sender == validators[_validatorId].validatorAddress, "Transaction sender doesn't have enough permissions");
     //     validators[_validatorId].validatorFeeAddress = _newAddress;
@@ -113,13 +120,21 @@ contract ValidatorService is Permissions {
     // }
 
     /**
-        @notice this function is used by DelegationRequestManager.checkValidatorAccess <br>
-        to check if a validatorId is matching the validatorAddress
-        @param validatorId Registered Id of the validator
-        @param validatorAddress address of the Validator
-        @return whether the validatorAddress is valid
+           @notice this function is used by DelegationRequestManager.checkValidatorAccess <br>
+           to check if a validatorId is matching the validatorAddress
+           @param validatorId Registered Id of the validator
+           @param validatorAddress address of the Validator
+           @return whether the validatorAddress is valid
     */
-    function checkValidatorIdToAddress(uint validatorId, address validatorAddress) external view returns (bool) {
-        return validatorIdtoAddress[validatorId] == validatorAddress ? true : false;
+    function checkValidatorAddressToId(address validatorAddress, uint validatorId) external view returns (bool) {
+        return validatorAddressToId[validatorAddress] == validatorId ? true : false;
+    }
+
+    function createNode() external {
+        // uint validatorId = validatorAddressToId[msg.sender];
+        // require(validators[validatorId].nodeIndexes.length * MSR <= )
+        // msr
+        // bond
+
     }
 }

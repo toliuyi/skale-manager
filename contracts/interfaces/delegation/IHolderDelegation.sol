@@ -54,12 +54,11 @@ interface IHolderDelegation {
         @param delegationId Id of the delegation request
      */
     function requestUndelegation(uint delegationId) external;
-
     /**
         @notice Removes delegation request for this delegator wallet
-        @param requestId Id of the delegation Request
+        @param delegationId Id of the delegation Request
     */
-    function cancelPendingDelegation(uint requestId) external;
+    function cancelPendingDelegation(uint delegationId) external;
 
     /**
         @notice Returns an array of pending delegation request IDs for this validator <br>
