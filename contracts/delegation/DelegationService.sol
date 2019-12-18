@@ -92,10 +92,15 @@ contract DelegationService is Permissions, IHolderDelegation, IValidatorDelegati
         revert("Not implemented");
     }
 
-     /**
-       @dev "No interface" and "Not implemented"
-       @notice Allows service to slash `validator` by `amount` of tokens
-    */
+    /// @notice Returns array of delegation requests id
+    function listDelegationRequests() external returns (uint[] memory) {
+        revert("Not implemented");
+    }
+
+    /**
+      @dev "No interface" and "Not implemented"
+      @notice Allows service to slash `validator` by `amount` of tokens
+   */
     function slash(address validator, uint amount) external {
         revert("Not implemented");
     }
@@ -221,7 +226,7 @@ contract DelegationService is Permissions, IHolderDelegation, IValidatorDelegati
     /**
         @dev See {IValidatorDelegation.setValidatorDescription}. "Not implemented"
     */
-    function setValidatorDescription(string calldata descripton) external {
+    function setValidatorDescription(string calldata description) external {
         revert("Not implemented");
     }
 

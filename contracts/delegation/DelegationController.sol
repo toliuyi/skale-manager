@@ -29,16 +29,23 @@ import "../thirdparty/BokkyPooBahsDateTimeLibrary.sol";
 contract DelegationController is Permissions {
 
     struct Delegation {
+        uint validatorId;
+        address holder; // address of tokens owner
         uint amount;
         uint stakeEffectiveness;
-        uint expirationDate;
+        uint created; // time of creation
+        uint delegationPeriod;
     }
 
-    //      validatorId       tokenAddress
-    mapping (uint => mapping (address => Delegation[])) public delegations;
-    mapping (address => uint) public effectiveDelegationsTotal;
-    mapping (uint => uint) public delegationsTotal;
-    mapping (address => uint) public delegated;
+    /// @notice delegations will never be deleted to index in this array may be used like delegation id
+    Delegation[] public delegations;
+
+    ///       holder => delegationId
+    mapping (address => uint[]) private _delegationsByHolder;
+
+    // mapping (address => uint) public effectiveDelegationsTotal;
+    // mapping (uint => uint) public delegationsTotal;
+    // mapping (address => uint) public delegated;
 
     /**
         @notice DelegationController constructor
@@ -65,16 +72,18 @@ contract DelegationController is Permissions {
         uint amount;
         uint delegationPeriod;
         (tokenAddress, validatorId, amount, delegationPeriod) = delegationRequestManager.getDelegationRequest(requestId);
-        uint stakeEffectiveness = DelegationPeriodManager(
-            contractManager.getContract("DelegationPeriodManager")
-        ).getStakeMultiplier(delegationPeriod);
+        // uint stakeEffectiveness = DelegationPeriodManager(
+        //     contractManager.getContract("DelegationPeriodManager")
+        // ).getStakeMultiplier(delegationPeriod);
         uint endTime = calculateEndTime(delegationPeriod);
-        //Call Token.lock(lockTime)
-        delegations[validatorId][tokenAddress].push(
-            Delegation(amount, stakeEffectiveness, endTime)
-        );
-        delegationsTotal[validatorId] += amount * stakeEffectiveness;
-        delegated[tokenAddress] += amount;
+
+        revert("delegate is not implemented");
+
+        // addDelegation(Delegation(validatorId, tokenAddress, amount, stakeEffectiveness, true or false?));
+
+        // TODO: Lock tokens
+        // delegationsTotal[validatorId] += amount * stakeEffectiveness;
+        // delegated[tokenAddress] += amount;
     }
 
     /**
@@ -85,6 +94,15 @@ contract DelegationController is Permissions {
         // require(delegations[validatorId].tokenAddress != address(0), "Token with such address wasn't delegated");
         // Call Token.unlock(lockTime)
         // update isDelegated
+    }
+
+    function getDelegationsByHolder(address holder) external view returns (uint[] memory) {
+        return _delegationsByHolder[holder];
+    }
+
+    function getDelegation(uint delegationId) external view returns (Delegation memory) {
+        require(delegationId < delegations.length, "Delegation does not exist");
+        return delegations[delegationId];
     }
 
     /**
@@ -109,5 +127,9 @@ contract DelegationController is Permissions {
         endTime = BokkyPooBahsDateTimeLibrary.addMonths(timestamp, months);
     }
 
-
+    function addDelegation(Delegation memory delegation) internal returns (uint delegationId) {
+        delegationId = delegations.length;
+        delegations.push(delegation);
+        _delegationsByHolder[delegation.holder].push(delegationId);
+    }
 }
