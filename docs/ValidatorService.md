@@ -19,7 +19,8 @@ struct Validator {
  uint256 feeRate,
  uint256 registrationTime,
  uint256 minimumDelegationAmount,
- uint256 lastBountyCollectionMonth
+ uint256 lastBountyCollectionMonth,
+ uint256[] nodeIndexes
 }
 ```
 
@@ -28,7 +29,7 @@ struct Validator {
 
 ```js
 struct ValidatorService.Validator[] public validators;
-mapping(uint256 => address) public validatorIdtoAddress;
+mapping(address => uint256) public validatorAddressToId;
 
 ```
 
@@ -36,9 +37,11 @@ mapping(uint256 => address) public validatorIdtoAddress;
 
 - [(address newContractsAddress)](#)
 - [registerValidator(string name, string description, uint256 feeRate, uint256 minimumDelegationAmount)](#registervalidator)
-- [setNewValidatorAddress(uint256 validatorId, address newValidatorAddress)](#setnewvalidatoraddress)
+- [setNewValidatorAddress(address newValidatorAddress, uint256 validatorId)](#setnewvalidatoraddress)
 - [checkValidatorExists(uint256 validatorId)](#checkvalidatorexists)
-- [checkValidatorIdToAddress(uint256 validatorId, address validatorAddress)](#checkvalidatoridtoaddress)
+- [checkMinimumDelegation(uint256 validatorId, uint256 amount)](#checkminimumdelegation)
+- [checkValidatorAddressToId(address validatorAddress, uint256 validatorId)](#checkvalidatoraddresstoid)
+- [createNode()](#createnode)
 
 ### 
 
@@ -82,17 +85,17 @@ registered validatorId
 sets new address to validator
 
 ```js
-function setNewValidatorAddress(uint256 validatorId, address newValidatorAddress) external nonpayable
+function setNewValidatorAddress(address newValidatorAddress, uint256 validatorId) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| validatorId | uint256 | Id of the validator | 
 | newValidatorAddress | address | new address of the the validator
 Requirements
 -  Sender should have permission to change the address | 
+| validatorId | uint256 | Id of the validator | 
 
 ### checkValidatorExists
 
@@ -107,13 +110,27 @@ returns(bool)
 | ------------- |------------- | -----|
 | validatorId | uint256 |  | 
 
-### checkValidatorIdToAddress
+### checkMinimumDelegation
+
+```js
+function checkMinimumDelegation(uint256 validatorId, uint256 amount) external nonpayable
+returns(bool)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| validatorId | uint256 |  | 
+| amount | uint256 |  | 
+
+### checkValidatorAddressToId
 
 this function is used by DelegationRequestManager.checkValidatorAccess <br>
 to check if a validatorId is matching the validatorAddress
 
 ```js
-function checkValidatorIdToAddress(uint256 validatorId, address validatorAddress) external view
+function checkValidatorAddressToId(address validatorAddress, uint256 validatorId) external view
 returns(bool)
 ```
 
@@ -125,6 +142,12 @@ whether the validatorAddress is valid
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| validatorId | uint256 | Registered Id of the validator | 
 | validatorAddress | address | address of the Validator | 
+| validatorId | uint256 | Registered Id of the validator | 
+
+### createNode
+
+```js
+function createNode() external nonpayable
+```
 

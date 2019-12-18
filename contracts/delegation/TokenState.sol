@@ -112,10 +112,9 @@ contract TokenState is Permissions {
     }
 
     /**
-        @dev Not implemented!
-        @notice get the total locked amount
-        @param holder address of the token holder
-        @return total locked amount
+        @notice get the final state of the delegation request
+        @param delegationId Id of the delegation
+        @return state final state of the token
     */
     function getState(uint delegationId) public returns (State state) {
         DelegationController delegationController = DelegationController(contractManager.getContract("DelegationController"));

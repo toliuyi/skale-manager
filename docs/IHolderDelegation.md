@@ -18,8 +18,7 @@ event DelegationRequestIsSent(uint256  id);
 
 - [delegate(uint256 validatorId, uint256 amount, uint256 delegationPeriod, string info)](#delegate)
 - [requestUndelegation(uint256 delegationId)](#requestundelegation)
-- [cancelPendingDelegation(uint256 requestId)](#cancelpendingdelegation)
-- [getAllDelegationRequests()](#getalldelegationrequests)
+- [cancelPendingDelegation(uint256 delegationId)](#cancelpendingdelegation)
 - [getDelegationRequestsForValidator(uint256 validatorId)](#getdelegationrequestsforvalidator)
 - [getValidators()](#getvalidators)
 - [withdrawBounty(address bountyCollectionAddress, uint256 amount)](#withdrawbounty)
@@ -71,29 +70,14 @@ function requestUndelegation(uint256 delegationId) external nonpayable
 Removes delegation request for this delegator wallet
 
 ```js
-function cancelPendingDelegation(uint256 requestId) external nonpayable
+function cancelPendingDelegation(uint256 delegationId) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| requestId | uint256 | Id of the delegation Request | 
-
-### getAllDelegationRequests
-
-⤿ Overridden Implementation(s): [DelegationService.getAllDelegationRequests](DelegationService.md#getalldelegationrequests)
-
-Gets all delegation request ids
-
-```js
-function getAllDelegationRequests() external nonpayable
-returns(uint256[])
-```
-
-**Returns**
-
-all registered delegation request Ids
+| delegationId | uint256 | Id of the delegation Request | 
 
 ### getDelegationRequestsForValidator
 

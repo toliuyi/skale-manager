@@ -38,8 +38,8 @@ interface IValidatorDelegation {
     }
 
     /**
-       @notice Allows validator to accept tokens delegated at `requestId`
-       @param requestId returns request
+       @notice Allows validator to accept tokens delegated at `delegationId`
+       @param delegationId returns request
     */
     function accept(uint delegationId) external;
 
@@ -68,7 +68,7 @@ interface IValidatorDelegation {
         sets validatorAddress to to the address of the caller
         @param name name of the validator
         @param description Validator Description
-        @param feeRate Validator Commission Rate
+        @param feeRatePromille Validator Commission Rate
         @return  Returns registered validatorId
     */
     function registerValidator(

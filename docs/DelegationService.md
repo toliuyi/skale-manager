@@ -11,7 +11,7 @@ Implements IHolderDelegation and IValidatorDelegation interfaces
 **Events**
 
 ```js
-event DelegationRequestIsSent(uint256  requestId);
+event DelegationRequestIsSent(uint256  delegationId);
 event ValidatorRegistered(uint256  validatorId);
 ```
 
@@ -19,23 +19,24 @@ event ValidatorRegistered(uint256  validatorId);
 
 - [(address newContractsAddress)](#)
 - [requestUndelegation(uint256 delegationId)](#requestundelegation)
-- [accept(uint256 requestId)](#accept)
+- [accept(uint256 delegationId)](#accept)
 - [createNode(uint16 port, uint16 nonce, bytes4 ip, bytes4 publicIp)](#createnode)
 - [setMinimumDelegationAmount(uint256 amount)](#setminimumdelegationamount)
 - [returnTokens(uint256 amount)](#returntokens)
+- [listDelegationRequests()](#listdelegationrequests)
 - [slash(address validator, uint256 amount)](#slash)
 - [pay(address validator, uint256 amount)](#pay)
 - [getDelegatedAmount(address validator)](#getdelegatedamount)
 - [setMinimumStakingRequirement(uint256 amount)](#setminimumstakingrequirement)
 - [delegate(uint256 validatorId, uint256 amount, uint256 delegationPeriod, string info)](#delegate)
-- [cancelPendingDelegation(uint256 requestId)](#cancelpendingdelegation)
+- [cancelPendingDelegation(uint256 delegationId)](#cancelpendingdelegation)
 - [getAllDelegationRequests()](#getalldelegationrequests)
 - [getDelegationRequestsForValidator(uint256 validatorId)](#getdelegationrequestsforvalidator)
 - [registerValidator(string name, string description, uint256 feeRate, uint256 minimumDelegationAmount)](#registervalidator)
 - [unregisterValidator(uint256 validatorId)](#unregistervalidator)
 - [getBondAmount(uint256 validatorId)](#getbondamount)
 - [setValidatorName(string newName)](#setvalidatorname)
-- [setValidatorDescription(string descripton)](#setvalidatordescription)
+- [setValidatorDescription(string description)](#setvalidatordescription)
 - [setValidatorAddress(address newAddress)](#setvalidatoraddress)
 - [getValidatorInfo(uint256 validatorId)](#getvalidatorinfo)
 - [getValidators()](#getvalidators)
@@ -83,14 +84,14 @@ See {IValidatorDelegation.accept}
 calls DelegationRequestManager.acceptRequest
 
 ```js
-function accept(uint256 requestId) external nonpayable
+function accept(uint256 delegationId) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| requestId | uint256 |  | 
+| delegationId | uint256 |  | 
 
 ### createNode
 
@@ -140,6 +141,15 @@ function returnTokens(uint256 amount) external nonpayable
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
 | amount | uint256 |  | 
+
+### listDelegationRequests
+
+Returns array of delegation requests id
+
+```js
+function listDelegationRequests() external nonpayable
+returns(uint256[])
+```
 
 ### slash
 
@@ -234,18 +244,16 @@ function delegate(uint256 validatorId, uint256 amount, uint256 delegationPeriod,
 See {IHolderDelegation.cancelPendingDelegation}
 
 ```js
-function cancelPendingDelegation(uint256 requestId) external nonpayable
+function cancelPendingDelegation(uint256 delegationId) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| requestId | uint256 |  | 
+| delegationId | uint256 |  | 
 
 ### getAllDelegationRequests
-
-⤾ overrides [IHolderDelegation.getAllDelegationRequests](IHolderDelegation.md#getalldelegationrequests)
 
 See {IHolderDelegation.getAllDelegationRequests}. "Not implemented"
 
@@ -347,14 +355,14 @@ function setValidatorName(string newName) external nonpayable
 See {IValidatorDelegation.setValidatorDescription}. "Not implemented"
 
 ```js
-function setValidatorDescription(string descripton) external nonpayable
+function setValidatorDescription(string description) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| descripton | string |  | 
+| description | string |  | 
 
 ### setValidatorAddress
 

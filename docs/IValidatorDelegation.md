@@ -22,10 +22,10 @@ struct Validator {
 
 ## Functions
 
-- [accept(uint256 requestId)](#accept)
+- [accept(uint256 delegationId)](#accept)
 - [createNode(uint16 port, uint16 nonce, bytes4 ip, bytes4 publicIp)](#createnode)
 - [deleteNode(uint256 nodeIndex)](#deletenode)
-- [registerValidator(string name, string description, uint256 feeRate, uint256 minimumDelegationAmount)](#registervalidator)
+- [registerValidator(string name, string description, uint256 feeRatePromille, uint256 minimumDelegationAmount)](#registervalidator)
 - [unregisterValidator(uint256 validatorId)](#unregistervalidator)
 - [getBondAmount(uint256 validatorId)](#getbondamount)
 - [setValidatorName(string newName)](#setvalidatorname)
@@ -38,17 +38,17 @@ struct Validator {
 
 ⤿ Overridden Implementation(s): [DelegationService.accept](DelegationService.md#accept)
 
-Allows validator to accept tokens delegated at `requestId`
+Allows validator to accept tokens delegated at `delegationId`
 
 ```js
-function accept(uint256 requestId) external nonpayable
+function accept(uint256 delegationId) external nonpayable
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| requestId | uint256 | returns request | 
+| delegationId | uint256 | returns request | 
 
 ### createNode
 
@@ -97,7 +97,7 @@ Executed by a validator : Registers a new validator <br>
 sets validatorAddress to to the address of the caller
 
 ```js
-function registerValidator(string name, string description, uint256 feeRate, uint256 minimumDelegationAmount) external nonpayable
+function registerValidator(string name, string description, uint256 feeRatePromille, uint256 minimumDelegationAmount) external nonpayable
 returns(validatorId uint256)
 ```
 
@@ -111,7 +111,7 @@ Returns registered validatorId
 | ------------- |------------- | -----|
 | name | string | name of the validator | 
 | description | string | Validator Description | 
-| feeRate | uint256 | Validator Commission Rate | 
+| feeRatePromille | uint256 | Validator Commission Rate | 
 | minimumDelegationAmount | uint256 |  | 
 
 ### unregisterValidator

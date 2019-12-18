@@ -43,12 +43,10 @@ contract DelegationRequestManager is Permissions {
     /**
         @notice creates a Delegation Request
         @dev Changes TokenState to PROPOSED!
-        @param tokenAddress token address of the delegator
         @param validatorId Id of the validator
         @param amount amount of tokens to be used for delegation
         @param delegationPeriod delegation period (3,6,12)
         @param info information about the delegation request
-        @return requestId: Id of the delegation request
 
         Requirement
         -
@@ -102,12 +100,13 @@ contract DelegationRequestManager is Permissions {
 
     /**
         @notice cancels a Delegation Request
-        @param requestId Id of the delegation Request
+        @param delegationId Id of the delegation Request
 
         Requirement
         -
-        Delegation request should exist
+
         Only token holder can cancel request
+        After cancellation token should be COMPLETED
      */
     function cancelRequest(uint delegationId) external {
         TokenState tokenState = TokenState(
@@ -125,7 +124,7 @@ contract DelegationRequestManager is Permissions {
 
     /**
         @notice validator calls this function to accept a Delegation Request
-        @param requestId Id of the delegation Request
+        @param delegationId Id of the delegation Request
 
         Requirement
         -

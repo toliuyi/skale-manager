@@ -28,8 +28,6 @@ event ContractUpgraded(string  contractsName, address  contractsAddress);
 
 ### setContractsAddress
 
-Adds actual contract to mapping of actual contract addresses
-
 ```js
 function setContractsAddress(string contractsName, address newContractsAddress) external nonpayable onlyOwner 
 ```

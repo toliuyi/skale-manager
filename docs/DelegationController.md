@@ -13,9 +13,12 @@ Delegation Controller for executing delegation events
 
 ```js
 struct Delegation {
+ address holder,
+ uint256 validatorId,
  uint256 amount,
- uint256 stakeEffectiveness,
- uint256 expirationDate
+ uint256 delegationPeriod,
+ uint256 created,
+ string info
 }
 ```
 
@@ -23,19 +26,44 @@ struct Delegation {
 **Constants & Variables**
 
 ```js
-mapping(uint256 => mapping(address => struct DelegationController.Delegation[])) public delegations;
-mapping(address => uint256) public effectiveDelegationsTotal;
+//public members
+struct DelegationController.Delegation[] public delegations;
+mapping(uint256 => uint256) public effectiveDelegationsTotal;
 mapping(uint256 => uint256) public delegationsTotal;
-mapping(address => uint256) public delegated;
+
+//private members
+mapping(address => uint256) private _locks;
+mapping(address => uint256[]) private _delegationsByHolder;
 
 ```
+
+## Modifiers
+
+- [checkDelegationExists](#checkdelegationexists)
+
+### checkDelegationExists
+
+```js
+modifier checkDelegationExists(uint256 delegationId) internal
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| delegationId | uint256 |  | 
 
 ## Functions
 
 - [(address newContractsAddress)](#)
-- [delegate(uint256 requestId)](#delegate)
+- [lock(address holder, uint256 amount)](#lock)
+- [unlock(address holder, uint256 amount)](#unlock)
+- [getLocked(address holder)](#getlocked)
+- [delegate(uint256 delegationId)](#delegate)
+- [addDelegation(address holder, uint256 validatorId, uint256 amount, uint256 delegationPeriod, uint256 created, string info)](#adddelegation)
 - [unDelegate(uint256 validatorId)](#undelegate)
-- [calculateEndTime(uint256 months)](#calculateendtime)
+- [getDelegationsByHolder(address holder)](#getdelegationsbyholder)
+- [getDelegation(uint256 delegationId)](#getdelegation)
 
 ### 
 
@@ -51,19 +79,76 @@ function (address newContractsAddress) public nonpayable Permissions
 | ------------- |------------- | -----|
 | newContractsAddress | address | registers for Permissions | 
 
-### delegate
-
-with this function validator finalizes the approval of a delegation request
+### lock
 
 ```js
-function delegate(uint256 requestId) external nonpayable
+function lock(address holder, uint256 amount) external nonpayable allow 
 ```
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| requestId | uint256 | Id of the delegation requests | 
+| holder | address |  | 
+| amount | uint256 |  | 
+
+### unlock
+
+```js
+function unlock(address holder, uint256 amount) external nonpayable allow 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| holder | address |  | 
+| amount | uint256 |  | 
+
+### getLocked
+
+```js
+function getLocked(address holder) external nonpayable
+returns(uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| holder | address |  | 
+
+### delegate
+
+with this function validator finalizes the approval of a delegation request
+
+```js
+function delegate(uint256 delegationId) external nonpayable allow 
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| delegationId | uint256 | Id of the delegation requests | 
+
+### addDelegation
+
+```js
+function addDelegation(address holder, uint256 validatorId, uint256 amount, uint256 delegationPeriod, uint256 created, string info) external nonpayable allow 
+returns(delegationId uint256)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| holder | address |  | 
+| validatorId | uint256 |  | 
+| amount | uint256 |  | 
+| delegationPeriod | uint256 |  | 
+| created | uint256 |  | 
+| info | string |  | 
 
 ### unDelegate
 
@@ -77,24 +162,31 @@ function unDelegate(uint256 validatorId) external view
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| validatorId | uint256 |  | 
+| validatorId | uint256 | Id of the validator | 
 
-### calculateEndTime
-
-Calculates the expiration date of a delegation
+### getDelegationsByHolder
 
 ```js
-function calculateEndTime(uint256 months) public view
-returns(endTime uint256)
+function getDelegationsByHolder(address holder) external view
+returns(uint256[])
 ```
-
-**Returns**
-
-sendTime expiration date of delegation
 
 **Arguments**
 
 | Name        | Type           | Description  |
 | ------------- |------------- | -----|
-| months | uint256 |  | 
+| holder | address |  | 
+
+### getDelegation
+
+```js
+function getDelegation(uint256 delegationId) public view checkDelegationExists 
+returns(struct DelegationController.Delegation)
+```
+
+**Arguments**
+
+| Name        | Type           | Description  |
+| ------------- |------------- | -----|
+| delegationId | uint256 |  | 
 

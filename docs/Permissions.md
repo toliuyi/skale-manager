@@ -3,7 +3,7 @@
 View Source: [contracts/Permissions.sol](../contracts/Permissions.sol)
 
 **↗ Extends: [Ownable](Ownable.md)**
-**↘ Derived Contracts: [DelegationController](DelegationController.md), [DelegationPeriodManager](DelegationPeriodManager.md), [DelegationRequestManager](DelegationRequestManager.md), [DelegationService](DelegationService.md), [SkaleToken](SkaleToken.md), [TokenSaleManager](TokenSaleManager.md), [ValidatorService](ValidatorService.md)**
+**↘ Derived Contracts: [ConstantsHolder](ConstantsHolder.md), [DelegationController](DelegationController.md), [DelegationPeriodManager](DelegationPeriodManager.md), [DelegationRequestManager](DelegationRequestManager.md), [DelegationService](DelegationService.md), [GroupsData](GroupsData.md), [GroupsFunctionality](GroupsFunctionality.md), [IDecryption](IDecryption.md), [IECDH](IECDH.md), [ISchainsFunctionalityInternal](ISchainsFunctionalityInternal.md), [ISkaleDKG](ISkaleDKG.md), [ISkaleVerifier](ISkaleVerifier.md), [ManagerData](ManagerData.md), [NodesData](NodesData.md), [NodesFunctionality](NodesFunctionality.md), [Pricing](Pricing.md), [SchainsFunctionality](SchainsFunctionality.md), [SkaleBalances](SkaleBalances.md), [SkaleDKG](SkaleDKG.md), [SkaleManager](SkaleManager.md), [SkaleToken](SkaleToken.md), [SkaleVerifier](SkaleVerifier.md), [TokenSaleManager](TokenSaleManager.md), [TokenState](TokenState.md), [ValidatorService](ValidatorService.md)**
 
 **Permissions**
 

@@ -78,7 +78,7 @@ contract DelegationController is Permissions {
 
     /**
            @notice with this function validator finalizes the approval of a delegation request
-           @dev gets delegation request info from delegationRequestManager with requestId <br>
+           @dev gets delegation request info from delegationRequestManager with delegationId <br>
            if stake is effective then continues delegation process and transfers the token to delegated token address
            @param delegationId Id of the delegation requests
     */
