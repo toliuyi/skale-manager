@@ -22,6 +22,9 @@ pragma solidity ^0.5.3;
 import "../Permissions.sol";
 
 
+/**
+    @notice Validator Service handles all validator related information and registration
+*/
 contract ValidatorService is Permissions {
 
     struct Validator {
@@ -38,11 +41,22 @@ contract ValidatorService is Permissions {
     Validator[] public validators;
     mapping (address => uint) public validatorAddressToId;
 
-
+    /**
+        @notice Constructor of a validator service registers newContract Address
+        @param newContractsAddress to register for Permissions
+    */
     constructor(address newContractsAddress) Permissions(newContractsAddress) public {
 
     }
 
+    /**
+        @notice Executed by a DelegationService.registerValidator : and registers a validator info <br>
+        sets validatorAddress to to the address of the caller
+        @param name name of the validator
+        @param description Validator Description
+        @param feeRate Validator Commission Rate
+        @return registered validatorId
+    */
     function registerValidator(
         string calldata name,
         string calldata description,
@@ -65,6 +79,15 @@ contract ValidatorService is Permissions {
         validatorId = validators.length - 1;
     }
 
+    /**
+         @notice sets new address to validator
+         @param validatorId Id of the validator
+         @param newValidatorAddress new address of the the validator
+
+         Requirements
+
+         -  Sender should have permission to change the address
+     */
     function setNewValidatorAddress(address newValidatorAddress, uint validatorId) external {
         require(
             validatorId == validatorAddressToId[msg.sender],
@@ -73,6 +96,12 @@ contract ValidatorService is Permissions {
         validatorAddressToId[newValidatorAddress] = validatorId;
     }
 
+    /*
+        @notice checks if a specific Id exists as a validator
+        @dev Used by DelegationRequestManager.checkRequest function
+        @param validatorId Id of the validator
+        @return whether the validator exists
+    */
     function checkValidatorExists(uint validatorId) external view returns (bool) {
         return validatorId < validators.length ? true : false;
     }
@@ -90,6 +119,13 @@ contract ValidatorService is Permissions {
     //     return validators[_validatorId].validatorFeeAddress;
     // }
 
+    /**
+           @notice this function is used by DelegationRequestManager.checkValidatorAccess <br>
+           to check if a validatorId is matching the validatorAddress
+           @param validatorId Registered Id of the validator
+           @param validatorAddress address of the Validator
+           @return whether the validatorAddress is valid
+    */
     function checkValidatorAddressToId(address validatorAddress, uint validatorId) external view returns (bool) {
         return validatorAddressToId[validatorAddress] == validatorId ? true : false;
     }

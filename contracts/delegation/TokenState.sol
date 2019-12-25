@@ -55,6 +55,11 @@ contract TokenState is Permissions {
     constructor(address _contractManager) Permissions(_contractManager) public {
     }
 
+    /**
+        @notice get the total locked amount
+        @param holder address of the token holder
+        @return total locked amount
+    */
     function getLockedCount(address holder) external returns (uint amount) {
         amount = 0;
         DelegationController delegationController = DelegationController(contractManager.getContract("DelegationController"));
@@ -68,6 +73,11 @@ contract TokenState is Permissions {
         return amount + getPurchasedAmount(holder);
     }
 
+    /**
+        @notice get the total delegated amount
+        @param holder address of the token holder
+        @return total delegated amount
+    */
     function getDelegatedCount(address holder) external returns (uint amount) {
         amount = 0;
         DelegationController delegationController = DelegationController(contractManager.getContract("DelegationController"));
@@ -101,6 +111,11 @@ contract TokenState is Permissions {
         _cancel(delegationId, delegationController.getDelegation(delegationId));
     }
 
+    /**
+        @notice get the final state of the delegation request
+        @param delegationId Id of the delegation
+        @return state final state of the token
+    */
     function getState(uint delegationId) public returns (State state) {
         DelegationController delegationController = DelegationController(contractManager.getContract("DelegationController"));
         // TODO: Modify existance check
@@ -133,7 +148,11 @@ contract TokenState is Permissions {
     }
 
     // private
-
+    /**
+        @notice modifies the token state
+        @param delegationId Id of the delegator
+        @param newState state of the delegatedToken
+    */
     function setState(uint delegationId, State newState) internal {
         TimeHelpers timeHelpers = TimeHelpers(contractManager.getContract("TimeHelpers"));
         DelegationController delegationController = DelegationController(contractManager.getContract("DelegationController"));

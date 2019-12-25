@@ -22,6 +22,9 @@ import "./DelegationRequestManager.sol";
 import "./DelegationPeriodManager.sol";
 
 
+/**
+    @notice Delegation Controller for executing delegation events
+*/
 contract DelegationController is Permissions {
 
     struct Delegation {
@@ -53,6 +56,10 @@ contract DelegationController is Permissions {
         _;
     }
 
+    /**
+        @notice DelegationController constructor
+        @param newContractsAddress registers for Permissions
+    */
     constructor(address newContractsAddress) Permissions(newContractsAddress) public {
 
     }
@@ -69,6 +76,12 @@ contract DelegationController is Permissions {
         return _locks[holder];
     }
 
+    /**
+           @notice with this function validator finalizes the approval of a delegation request
+           @dev gets delegation request info from delegationRequestManager with delegationId <br>
+           if stake is effective then continues delegation process and transfers the token to delegated token address
+           @param delegationId Id of the delegation requests
+    */
     function delegate(uint delegationId) external allow("DelegationRequestManager") {
         address holder;
         uint validatorId;
@@ -114,6 +127,11 @@ contract DelegationController is Permissions {
         _delegationsByHolder[holder].push(delegationId);
     }
 
+    /**
+        @notice undelegates a delegation from validator
+        @dev Not Implemented!!!
+        @param validatorId Id of the validator
+    */
     function unDelegate(uint validatorId) external view {
         // require(delegations[validatorId].holder != address(0), "Token with such address wasn't delegated");
         // Call Token.unlock(lockTime)
@@ -127,5 +145,4 @@ contract DelegationController is Permissions {
     function getDelegation(uint delegationId) public view checkDelegationExists(delegationId) returns (Delegation memory) {
         return delegations[delegationId];
     }
-
 }

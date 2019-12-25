@@ -28,6 +28,11 @@ import "../SkaleToken.sol";
 import "./TokenState.sol";
 
 
+/**
+    @notice Handles Delegation Requests <br>
+            Requests are created/canceled by the delegator <br>
+            Requests are accepted by the validator
+*/
 contract DelegationRequestManager is Permissions {
 
 
@@ -35,6 +40,20 @@ contract DelegationRequestManager is Permissions {
 
     }
 
+    /**
+        @notice creates a Delegation Request
+        @dev Changes TokenState to PROPOSED!
+        @param validatorId Id of the validator
+        @param amount amount of tokens to be used for delegation
+        @param delegationPeriod delegation period (3,6,12)
+        @param info information about the delegation request
+
+        Requirement
+        -
+        Delegation period should be allowed
+        Validator should be registered
+        Delegator should have enough tokens to delegate, checks the account holder balance through SKALEToken contract
+    */
     function createRequest(
         address holder,
         uint validatorId,
@@ -79,6 +98,16 @@ contract DelegationRequestManager is Permissions {
         require(holderBalance - lockedToDelegate >= amount, "Delegator hasn't enough tokens to delegate");
     }
 
+    /**
+        @notice cancels a Delegation Request
+        @param delegationId Id of the delegation Request
+
+        Requirement
+        -
+
+        Only token holder can cancel request
+        After cancellation token should be COMPLETED
+     */
     function cancelRequest(uint delegationId) external {
         TokenState tokenState = TokenState(
             contractManager.getContract("TokenState")
@@ -93,6 +122,14 @@ contract DelegationRequestManager is Permissions {
             "After cancellation token should be COMPLETED");
     }
 
+    /**
+        @notice validator calls this function to accept a Delegation Request
+        @param delegationId Id of the delegation Request
+
+        Requirement
+        -
+        Only token holder can cancel request
+    */
     function acceptRequest(uint delegationId) external {
         TokenState tokenState = TokenState(
             contractManager.getContract("TokenState")
