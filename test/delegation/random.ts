@@ -3,17 +3,15 @@ import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import { Account } from "web3/eth/accounts";
 import Contract from "web3/eth/contract";
-import { ConstantsHolderInstance,
-         ContractManagerInstance,
-         DelegationControllerContract,
-         DelegationServiceContract,
+import { ContractManagerInstance,
+         DelegationControllerInstance,
          DelegationServiceInstance,
          SkaleManagerMockContract,
          SkaleManagerMockInstance,
          SkaleTokenInstance,
          ValidatorServiceInstance} from "../../types/truffle-contracts";
-import { deployConstantsHolder } from "../utils/deploy/constantsHolder";
 import { deployContractManager } from "../utils/deploy/contractManager";
+import { deployDelegationController } from "../utils/deploy/delegation/delegationController";
 import { deployDelegationService } from "../utils/deploy/delegation/delegationService";
 import { deployValidatorService } from "../utils/deploy/delegation/validatorService";
 import { deploySkaleToken } from "../utils/deploy/skaleToken";
@@ -23,7 +21,6 @@ chai.should();
 chai.use(chaiAsPromised);
 
 const SkaleManagerMock: SkaleManagerMockContract = artifacts.require("./SkaleManagerMock");
-const DelegationService: any = artifacts.require("./DelegationService");
 
 contract("Random tests", ([owner]) => {
     let contractManager: ContractManagerInstance;
@@ -31,8 +28,10 @@ contract("Random tests", ([owner]) => {
     let skaleToken: SkaleTokenInstance;
     let delegationService: DelegationServiceInstance;
     let validatorService: ValidatorServiceInstance;
+    let delegationController: DelegationControllerInstance;
 
     let web3DelegationService: Contract;
+    let web3DelegationController: Contract;
 
     beforeEach(async () => {
         contractManager = await deployContractManager();
@@ -43,8 +42,12 @@ contract("Random tests", ([owner]) => {
         skaleToken = await deploySkaleToken(contractManager);
         delegationService = await deployDelegationService(contractManager);
         validatorService = await deployValidatorService(contractManager);
+        delegationController = await deployDelegationController(contractManager);
 
-        web3DelegationService = new web3.eth.Contract(DelegationService.abi, delegationService.address);
+        web3DelegationService = new web3.eth.Contract(
+            artifacts.require("./DelegationService").abi, delegationService.address);
+        web3DelegationController = new web3.eth.Contract(
+            artifacts.require("./DelegationController").abi, delegationController.address);
     });
 
     class Random {
@@ -104,6 +107,19 @@ contract("Random tests", ([owner]) => {
         return await validatorService.numberOfValidators();
     }
 
+    async function delegate(holder: Account, validatorId: number, amount: BigNumber, delegationPeriod: number) {
+        const data = web3DelegationController.methods.delegate(
+            validatorId, amount.toString(10), delegationPeriod, "D2 is even").encodeABI();
+        const receipt = await sendTransaction(holder, delegationController.address, data);
+        if (receipt.logs) {
+            const log = web3.eth.abi.decodeLog([{type: "uint", name: "delegationId"}], receipt.logs[0].data, [ "0x44a3960d6c88b789c9497fa950b0dabebb5912af1be8dbe814175b1296007e68" ]);
+            interface IDelegationRequestIsSent {
+                delegationId: string;
+            }
+            return Number.parseInt((log as IDelegationRequestIsSent).delegationId, 10);
+        }
+    }
+
     // operations:
 
     // Holder:
@@ -127,7 +143,6 @@ contract("Random tests", ([owner]) => {
         const timeStart = await currentTime(web3);
         const etherAmount = 5 * 1e18;
         const tokensAmount = new BigNumber(1e6).multipliedBy(new BigNumber(10).pow(18));
-        console.log("Tokens:", tokensAmount.toString(10));
 
         const random = new Random(13);
 
@@ -136,7 +151,8 @@ contract("Random tests", ([owner]) => {
             const validator = web3.eth.accounts.create();
             validators.push(validator);
             await web3.eth.sendTransaction({from: owner, to: validator.address, value: etherAmount});
-            await registerValidator(validator, "Validator #" + (i + 1), random.next() % 1001);
+            const validatorId = await registerValidator(validator, "Validator #" + (i + 1), random.next() % 1001);
+            await validatorService.enableValidator(validatorId);
         }
 
         const holders = validators.slice();
@@ -153,6 +169,12 @@ contract("Random tests", ([owner]) => {
             }
             await skaleToken.mint(owner, holder.address, tokensAmount.toString(10), "0x", "0x");
         }
+
+        await delegate(holders[0], 1, new BigNumber(13), 3);
+        await delegate(holders[0], 1, new BigNumber(13), 3);
+        const delId = await delegate(holders[0], 1, new BigNumber(13), 3);
+        console.log("delId:", delId);
+        console.log("Type:", typeof(delId));
 
         for (let currentTimestamp = timeStart;
             currentTimestamp < timeStart + duration;
