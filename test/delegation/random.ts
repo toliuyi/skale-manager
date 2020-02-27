@@ -1,8 +1,10 @@
+import BigNumber from "bignumber.js";
 import * as chai from "chai";
 import * as chaiAsPromised from "chai-as-promised";
 import { Account } from "web3/eth/accounts";
 import Contract from "web3/eth/contract";
-import { ContractManagerInstance,
+import { ConstantsHolderInstance,
+         ContractManagerInstance,
          DelegationControllerContract,
          DelegationServiceContract,
          DelegationServiceInstance,
@@ -10,6 +12,7 @@ import { ContractManagerInstance,
          SkaleManagerMockInstance,
          SkaleTokenInstance,
          ValidatorServiceInstance} from "../../types/truffle-contracts";
+import { deployConstantsHolder } from "../utils/deploy/constantsHolder";
 import { deployContractManager } from "../utils/deploy/contractManager";
 import { deployDelegationService } from "../utils/deploy/delegation/delegationService";
 import { deployValidatorService } from "../utils/deploy/delegation/validatorService";
@@ -119,9 +122,12 @@ contract("Random tests", ([owner]) => {
 
     async function test(duration: number,
                         timeDelta: number,
-                        validatorsAmount: number) {
+                        validatorsAmount: number,
+                        holdersAmount: number) {
         const timeStart = await currentTime(web3);
         const etherAmount = 5 * 1e18;
+        const tokensAmount = new BigNumber(1e6).multipliedBy(new BigNumber(10).pow(18));
+        console.log("Tokens:", tokensAmount.toString(10));
 
         const random = new Random(13);
 
@@ -131,6 +137,21 @@ contract("Random tests", ([owner]) => {
             validators.push(validator);
             await web3.eth.sendTransaction({from: owner, to: validator.address, value: etherAmount});
             await registerValidator(validator, "Validator #" + (i + 1), random.next() % 1001);
+        }
+
+        const holders = validators.slice();
+        if (holders.length > holdersAmount) {
+            holders.length = holdersAmount;
+        }
+        for (let i = 0; i < holdersAmount; ++i) {
+            let holder;
+            if (i >= holders.length) {
+                holder = web3.eth.accounts.create();
+                holders.push(holder);
+            } else {
+                holder = holders[i];
+            }
+            await skaleToken.mint(owner, holder.address, tokensAmount.toString(10), "0x", "0x");
         }
 
         for (let currentTimestamp = timeStart;
@@ -148,6 +169,6 @@ contract("Random tests", ([owner]) => {
     }
 
     it("test", async () => {
-        await test(5 * 60, 60, 1);
+        await test(5 * 60, 60, 1, 1);
     });
 });
