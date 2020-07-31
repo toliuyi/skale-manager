@@ -42,43 +42,43 @@ contract KeyStorage is Permissions {
         bytes32 share;
     }
 
-    mapping(bytes32 => mapping(uint => BroadcastedData)) private _data;
+    // mapping(bytes32 => mapping(uint => BroadcastedData)) private _data;
     mapping(bytes32 => G2Operations.G2Point) private _publicKeysInProgress;
     mapping(bytes32 => G2Operations.G2Point) private _schainsPublicKeys;
     mapping(bytes32 => G2Operations.G2Point[]) private _schainsNodesPublicKeys;
     mapping(bytes32 => G2Operations.G2Point[]) private _previousSchainsPublicKeys;
 
-    function addBroadcastedData(
-        bytes32 groupIndex,
-        uint indexInSchain,
-        KeyShare[] memory secretKeyContribution,
-        G2Operations.G2Point[] memory verificationVector
-    )
-        external
-        allow("SkaleDKG")
-    {
-        for (uint i = 0; i < secretKeyContribution.length; ++i) {
-            if (i < _data[groupIndex][indexInSchain].secretKeyContribution.length) {
-                _data[groupIndex][indexInSchain].secretKeyContribution[i] = secretKeyContribution[i];
-            } else {
-                _data[groupIndex][indexInSchain].secretKeyContribution.push(secretKeyContribution[i]);
-            }
-        }
-        while (_data[groupIndex][indexInSchain].secretKeyContribution.length > secretKeyContribution.length) {
-            _data[groupIndex][indexInSchain].secretKeyContribution.pop();
-        }
+    // function addBroadcastedData(
+    //     bytes32 groupIndex,
+    //     uint indexInSchain,
+    //     KeyShare[] memory secretKeyContribution,
+    //     G2Operations.G2Point[] memory verificationVector
+    // )
+    //     external
+    //     allow("SkaleDKG")
+    // {
+    //     for (uint i = 0; i < secretKeyContribution.length; ++i) {
+    //         if (i < _data[groupIndex][indexInSchain].secretKeyContribution.length) {
+    //             _data[groupIndex][indexInSchain].secretKeyContribution[i] = secretKeyContribution[i];
+    //         } else {
+    //             _data[groupIndex][indexInSchain].secretKeyContribution.push(secretKeyContribution[i]);
+    //         }
+    //     }
+    //     while (_data[groupIndex][indexInSchain].secretKeyContribution.length > secretKeyContribution.length) {
+    //         _data[groupIndex][indexInSchain].secretKeyContribution.pop();
+    //     }
 
-        for (uint i = 0; i < verificationVector.length; ++i) {
-            if (i < _data[groupIndex][indexInSchain].verificationVector.length) {
-                _data[groupIndex][indexInSchain].verificationVector[i] = verificationVector[i];
-            } else {
-                _data[groupIndex][indexInSchain].verificationVector.push(verificationVector[i]);
-            }
-        }
-        while (_data[groupIndex][indexInSchain].verificationVector.length > verificationVector.length) {
-            _data[groupIndex][indexInSchain].verificationVector.pop();
-        }
-    }
+    //     for (uint i = 0; i < verificationVector.length; ++i) {
+    //         if (i < _data[groupIndex][indexInSchain].verificationVector.length) {
+    //             _data[groupIndex][indexInSchain].verificationVector[i] = verificationVector[i];
+    //         } else {
+    //             _data[groupIndex][indexInSchain].verificationVector.push(verificationVector[i]);
+    //         }
+    //     }
+    //     while (_data[groupIndex][indexInSchain].verificationVector.length > verificationVector.length) {
+    //         _data[groupIndex][indexInSchain].verificationVector.pop();
+    //     }
+    // }
 
     function deleteKey(bytes32 groupIndex) external allow("SkaleDKG") {
         _previousSchainsPublicKeys[groupIndex].push(_schainsPublicKeys[groupIndex]);
@@ -143,7 +143,9 @@ contract KeyStorage is Permissions {
         uint nodeToComplaint,
         uint fromNodeToComplaint,
         uint secretNumber,
-        G2Operations.G2Point memory multipliedShare
+        bytes32 share,
+        G2Operations.G2Point memory multipliedShare,
+        G2Operations.G2Point[] memory verificationVector
     )
         external
         view
@@ -151,9 +153,15 @@ contract KeyStorage is Permissions {
     {
         SchainsInternal schainsInternal = SchainsInternal(contractManager.getContract("SchainsInternal"));
         uint index = schainsInternal.getNodeIndexInGroup(groupIndex, nodeToComplaint);
-        uint secret = _decryptMessage(groupIndex, secretNumber, nodeToComplaint, fromNodeToComplaint);
+        uint secret = _decryptMessage(
+            groupIndex,
+            secretNumber,
+            nodeToComplaint,
+            fromNodeToComplaint,
+            share
+        );
 
-        G2Operations.G2Point[] memory verificationVector = _data[groupIndex][index].verificationVector;
+        // G2Operations.G2Point[] memory verificationVector = _data[groupIndex][index].verificationVector;
         G2Operations.G2Point memory value = G2Operations.getG2Zero();
         G2Operations.G2Point memory tmp = G2Operations.getG2Zero();
 
@@ -168,52 +176,52 @@ contract KeyStorage is Permissions {
         return false;
     }
 
-    function getBroadcastedData(bytes32 groupIndex, uint nodeIndex)
-        external
-        view
-        returns (KeyShare[] memory, G2Operations.G2Point[] memory)
-    {
-        uint indexInSchain = SchainsInternal(contractManager.getContract("SchainsInternal")).getNodeIndexInGroup(
-            groupIndex,
-            nodeIndex
-        );
-        if (
-            _data[groupIndex][indexInSchain].secretKeyContribution.length == 0 &&
-            _data[groupIndex][indexInSchain].verificationVector.length == 0
-        ) {
-            KeyShare[] memory keyShare = new KeyShare[](0);
-            G2Operations.G2Point[] memory g2Point = new G2Operations.G2Point[](0);
-            return (keyShare, g2Point);
-        }
-        return (
-            _data[groupIndex][indexInSchain].secretKeyContribution,
-            _data[groupIndex][indexInSchain].verificationVector
-        );
-    }
+    // function getBroadcastedData(bytes32 groupIndex, uint nodeIndex)
+    //     external
+    //     view
+    //     returns (KeyShare[] memory, G2Operations.G2Point[] memory)
+    // {
+    //     uint indexInSchain = SchainsInternal(contractManager.getContract("SchainsInternal")).getNodeIndexInGroup(
+    //         groupIndex,
+    //         nodeIndex
+    //     );
+    //     if (
+    //         _data[groupIndex][indexInSchain].secretKeyContribution.length == 0 &&
+    //         _data[groupIndex][indexInSchain].verificationVector.length == 0
+    //     ) {
+    //         KeyShare[] memory keyShare = new KeyShare[](0);
+    //         G2Operations.G2Point[] memory g2Point = new G2Operations.G2Point[](0);
+    //         return (keyShare, g2Point);
+    //     }
+    //     return (
+    //         _data[groupIndex][indexInSchain].secretKeyContribution,
+    //         _data[groupIndex][indexInSchain].verificationVector
+    //     );
+    // }
 
-    function getSecretKeyShare(bytes32 groupIndex, uint nodeIndex, uint index)
-        external
-        view
-        returns (bytes32)
-    {
-        uint indexInSchain = SchainsInternal(contractManager.getContract("SchainsInternal")).getNodeIndexInGroup(
-            groupIndex,
-            nodeIndex
-        );
-        return (_data[groupIndex][indexInSchain].secretKeyContribution[index].share);
-    }
+    // function getSecretKeyShare(bytes32 groupIndex, uint nodeIndex, uint index)
+    //     external
+    //     view
+    //     returns (bytes32)
+    // {
+    //     uint indexInSchain = SchainsInternal(contractManager.getContract("SchainsInternal")).getNodeIndexInGroup(
+    //         groupIndex,
+    //         nodeIndex
+    //     );
+    //     return (_data[groupIndex][indexInSchain].secretKeyContribution[index].share);
+    // }
 
-    function getVerificationVector(bytes32 groupIndex, uint nodeIndex)
-        external
-        view
-        returns (G2Operations.G2Point[] memory)
-    {
-        uint indexInSchain = SchainsInternal(contractManager.getContract("SchainsInternal")).getNodeIndexInGroup(
-            groupIndex,
-            nodeIndex
-        );
-        return (_data[groupIndex][indexInSchain].verificationVector);
-    }
+    // function getVerificationVector(bytes32 groupIndex, uint nodeIndex)
+    //     external
+    //     view
+    //     returns (G2Operations.G2Point[] memory)
+    // {
+    //     uint indexInSchain = SchainsInternal(contractManager.getContract("SchainsInternal")).getNodeIndexInGroup(
+    //         groupIndex,
+    //         nodeIndex
+    //     );
+    //     return (_data[groupIndex][indexInSchain].verificationVector);
+    // }
 
     function getCommonPublicKey(bytes32 groupIndex) external view returns (G2Operations.G2Point memory) {
         return _schainsPublicKeys[groupIndex];
@@ -288,7 +296,8 @@ contract KeyStorage is Permissions {
         bytes32 groupIndex,
         uint secretNumber,
         uint nodeToComplaint,
-        uint fromNodeToComplaint
+        uint fromNodeToComplaint,
+        bytes32 share
     )
         private
         view
@@ -302,7 +311,7 @@ contract KeyStorage is Permissions {
         uint index = schainsInternal.getNodeIndexInGroup(groupIndex, fromNodeToComplaint);
         uint indexOfNode = schainsInternal.getNodeIndexInGroup(groupIndex, nodeToComplaint);
         uint secret = Decryption(contractManager.getContract("Decryption")).decrypt(
-            _data[groupIndex][indexOfNode].secretKeyContribution[index].share,
+            share,
             key
         );
         return secret;
