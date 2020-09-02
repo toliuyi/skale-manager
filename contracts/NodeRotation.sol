@@ -173,13 +173,12 @@ contract NodeRotation is Permissions {
         leavingHistory[nodeIndex].push(LeavingHistory(schainIndex, now.add(constants.rotationDelay())));
         rotations[schainIndex].newNodeIndex = newNodeIndex;
         rotations[schainIndex].rotationCounter++;
-        ISkaleDKG skaleDKG = ISkaleDKG(contractManager.getContract("SkaleDKG"));
-        skaleDKG.reopenChannel(schainIndex);
+        ISkaleDKG(contractManager.getContract("SkaleDKG")).openChannel(schainIndex);
     }
 
     function _checkRotation(bytes32 schainId ) private view returns (bool) {
         SchainsInternal schainsInternal = SchainsInternal(contractManager.getContract("SchainsInternal"));
-        require(schainsInternal.isSchainExist(schainId), "Schain does not exist");
+        require(schainsInternal.isSchainExist(schainId), "Schain does not exist for rotation");
         return schainsInternal.isAnyFreeNode(schainId);
     }
 
